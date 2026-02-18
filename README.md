@@ -1,2 +1,2 @@
 # ecological_forecasting
-repo for forcasting models 
+repo for forecasting models 
