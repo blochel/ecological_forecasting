@@ -1,0 +1,79 @@
+
+
+#time to event models 
+https://discourse.mc-stan.org/t/baseline-hazard-from-a-cox-model-in-brms/21140
+https://discourse.mc-stan.org/t/methods-to-model-multiple-time-to-events/17837
+https://mc-stan.org/rstanarm/reference/stan_jm.html
+https://becarioprecario.bitbucket.io/inla-gitbook/ch-survival.html
+
+#forecast partitions nick atreden
+https://github.com/atredennick/forecast_partition/blob/master/code/fit_models.R
+
+
+
+#machine learning - forecasting
+https://github.com/eco4cast/Statistical-Methods-Seminar-Series/blob/main/pichler-cito/cito.Rmd
+
+
+#SWOT - sateline data
+https://www.youtube.com/watch?v=7qqiUqR43_8
+https://github.com/podaac/2024-SWOT-ECR-Workshop?tab=readme-ov-file
+
+#Earth data hub
+https://github.com/bopen/edh-learning/blob/main/notebooks/00-getting-started.ipynb
+
+
+
+#wind flow data
+https://www.youtube.com/watch?v=EmVbVTqwoMU
+
+#lidar data REM maps
+https://www.youtube.com/watch?v=x8is770F7Og
+
+#GEE 
+https://www.youtube.com/watch?v=dmtNAYb5woE
+https://www.youtube.com/watch?v=3KKDGyCbZnM
+https://www.youtube.com/watch?v=LM0kmkCM06A - NDWI
+https://www.youtube.com/watch?v=nBOlo742998
+
+#python water sampler
+https://data.mendeley.com/datasets/pttsxp7s6w/1
+
+#terra sampling designs
+https://www.youtube.com/watch?app=desktop&v=q9sQkg7BeAc
+
+#weather data
+https://github.com/ropensci/GSODR
+
+#geo data
+https://av.tib.eu/series/1520
+https://av.tib.eu/media/63362
+
+
+#temperature
+https://www.youtube.com/watch?v=NdEv3rqLM0s&t=64s
+https://github.com/milos-agathon/temperature-maps-with-krigr/blob/main/R/main.r
+
+
+#gam forecasting
+https://github.com/nrennie/f4sg-gams
+https://www.youtube.com/watch?v=RkSrnBBx8sg
+
+
+#git
+https://www.youtube.com/watch?v=u4LIpYC0Yaw
+
+
+#random tutorials
+https://github.com/Rensvandeschoot/Tutorials
+
+
+#elevation models Everglades (EDEN)
+https://www.sciencebase.gov/catalog/item/66b66ffcd34eebcf8bb39550
+
+
+#spatial distribution
+https://sites.google.com/inlabru.org/inlabru
+
+
+
