@@ -285,13 +285,27 @@ null_score <- mapply(cbind, null_score, "model"= 'null', SIMPLIFY=F)
 
 
 
-
 fc_trait <- forecast(trait_mvgam, 
                     score = 'crps')
 trait_score <- score(fc_trait, 
                     score = 'crps')
 trait_score <- mapply(cbind, trait_score, "model"= 'trait', SIMPLIFY=F)
 
+
+
+fc_var <- forecast(var_mvgam, 
+                     score = 'crps')
+var_score <- score(fc_var, 
+                     score = 'crps')
+var_score <- mapply(cbind, var_score, "model"= 'var', SIMPLIFY=F)
+
+
+
+fc_ar <- forecast(ar_mvgam, 
+                     score = 'crps')
+ar_score <- score(fc_ar, 
+                     score = 'crps')
+ar_score <- mapply(cbind, ar_score, "model"= 'ar', SIMPLIFY=F)
 
 
 
@@ -302,6 +316,14 @@ scores_species_fig <- rbind(
     bind_rows(), 
   
   within(Map(cbind, trait_score, group = names(null_score)), 
+         rm(all_series)) |> 
+    bind_rows(),
+  
+  within(Map(cbind, var_score, group = names(null_score)), 
+         rm(all_series)) |> 
+    bind_rows(),
+  
+  within(Map(cbind, ar_score, group = names(null_score)), 
          rm(all_series)) |> 
     bind_rows() 
 )|> 
@@ -314,7 +336,9 @@ scores_species_fig <- rbind(
 
 model_all_scores <- rbind(
   trait_score$all_series,
-  null_score$all_series) |> 
+  null_score$all_series,
+  var_score$all_series, 
+  ar_score$all_series) |> 
   arrange(eval_horizon, score) |> 
   mutate(model = factor(model))
 
