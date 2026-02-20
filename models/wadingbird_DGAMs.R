@@ -92,16 +92,6 @@ ar_sp_intercept_prior <- prior(std_normal(), class = b)
 
 gam_var_priors <- c(sigma_prior, ar_sp_intercept_prior, intercept_prior)
 
-data_train |> 
-  filter(count != 0) |> 
-  #filter(species != 'rosp')  |> 
-  as.data.frame()  |> 
-  ggplot(aes( recession, count)) +
-  geom_point() +
-  facet_wrap(~species, 
-             scales = 'free')
-
-
 
 # Models ------------------------------------------------------------------
 
@@ -209,7 +199,7 @@ trait_mvgam <- mvgam(
 
 #Null
 fc_null <- forecast(
-  mod1)
+  null_mvgam)
 
 forecast_null <- plot(fc_null, series = 1, 
                       main = "Null model")
@@ -288,6 +278,6 @@ scores_fig <- model_scores |>
   ggplot(aes(x = eval_horizon, y = score, fill= model)) +
   geom_bar(stat="identity", position="dodge")
 
-
+scores_fig
 
 ggsave('results/scores/scores_fig.png', scores_fig, width = 12, height = 6, dpi = 300)
