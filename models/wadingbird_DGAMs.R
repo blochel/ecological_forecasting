@@ -195,6 +195,33 @@ trait_mvgam <- mvgam(
 
 
 
+var_mvgam <- mvgam(
+  formula = count ~ 1,
+  trend_formula = ~ s(breed_season_depth, trend, bs = "re") +
+    s(dry_days, trend, bs = "re") +
+    s(recession, trend, bs = "re"),
+  trend_model = VAR(),
+  family = nb(),
+  data = data_train,
+  newdata = data_test,
+  chains = 4
+)
+
+ar_mvgam <- mvgam(
+  formula = count ~ 1,
+  trend_formula = ~ s(breed_season_depth, trend, bs = "re") +
+    s(dry_days, trend, bs = "re") +
+    s(recession, trend, bs = "re"),
+  trend_model = AR(),
+  family = nb(),
+  data = data_train,
+  newdata = data_test,
+  chains = 4
+)
+
+
+
+
 # Forecasting - plotting --------------------------------------------------
 
 
