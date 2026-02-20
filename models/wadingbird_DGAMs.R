@@ -269,7 +269,23 @@ trait_score <- mapply(cbind, trait_score, "model"= 'trait', SIMPLIFY=F)
 
 
 
-model_scores <- rbind(
+scores_species_fig <- rbind(
+  within(Map(cbind, null_score, group = names(null_score)), 
+         rm(all_series)) |> 
+    bind_rows(), 
+  
+  within(Map(cbind, trait_score, group = names(null_score)), 
+         rm(all_series)) |> 
+    bind_rows() 
+)|> 
+  arrange(group, eval_horizon, score) |> 
+  ggplot(aes(x = eval_horizon, y = score, fill= model)) +
+  geom_bar(stat="identity", position="dodge") +
+  facet_grid(~group)
+
+
+
+model_all_scores <- rbind(
   trait_score$all_series,
   null_score$all_series) |> 
   arrange(eval_horizon, score) |> 
@@ -277,10 +293,17 @@ model_scores <- rbind(
 
 
 
-scores_fig <- model_scores |> 
+scores_all_fig <- model_all_scores |> 
   ggplot(aes(x = eval_horizon, y = score, fill= model)) +
   geom_bar(stat="identity", position="dodge")
 
+
+
 # scores_fig
 
-ggsave('results/scores/scores_fig.png', scores_fig, width = 12, height = 6, dpi = 300)
+ggsave('results/scores/scores_all_fig.png', scores_all_fig, 
+       width = 12, height = 6, dpi = 300)
+
+
+ggsave('results/scores/scores_species_fig.png', scores_species_fig, 
+       width = 12, height = 6, dpi = 300)
