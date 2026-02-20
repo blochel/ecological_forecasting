@@ -197,22 +197,25 @@ trait_mvgam <- mvgam(
 
 # Forecasting - plotting --------------------------------------------------
 
+
+#for later
+
 #Null
 fc_null <- forecast(
   null_mvgam)
 
-forecast_null <- plot(fc_null, series = 1, 
-                      main = "Null model")
-forecast_null <- plot(fc_null, series = 2, 
-                      main = "Null model")
-forecast_null <- plot(fc_null, series = 3, 
-                      main = "Null model")
-forecast_null <- plot(fc_null, series = 4, 
-                      main = "Null model")
-forecast_null <- plot(fc_null, series = 5, 
-                      main = "Null model")
-forecast_null <- plot(fc_null, series = 6, 
-                      main = "Null model")
+# forecast_null <- plot(fc_null, series = 1, 
+#                       main = "Null model")
+# forecast_null <- plot(fc_null, series = 2, 
+#                       main = "Null model")
+# forecast_null <- plot(fc_null, series = 3, 
+#                       main = "Null model")
+# forecast_null <- plot(fc_null, series = 4, 
+#                       main = "Null model")
+# forecast_null <- plot(fc_null, series = 5, 
+#                       main = "Null model")
+# forecast_null <- plot(fc_null, series = 6, 
+#                       main = "Null model")
 
 
 
@@ -220,18 +223,18 @@ forecast_null <- plot(fc_null, series = 6,
 fc_trait <- forecast(
   trait_mvgam)
 
-forecast_trait <- plot(fc_trait, series = 1, 
-     main = "Trait model")
-forecast_trait <- plot(fc_trait, series = 2, 
-     main = "Trait model")
-forecast_trait <- plot(fc_trait, series = 3, 
-     main = "Trait model")
-forecast_trait <- plot(fc_trait, series = 4, 
-     main = "Trait model")
-forecast_trait <- plot(fc_trait, series = 5, 
-     main = "Trait model")
-forecast_trait <- plot(fc_trait, series = 6, 
-     main = "Trait model")
+# forecast_trait <- plot(fc_trait, series = 1, 
+#      main = "Trait model")
+# forecast_trait <- plot(fc_trait, series = 2, 
+#      main = "Trait model")
+# forecast_trait <- plot(fc_trait, series = 3, 
+#      main = "Trait model")
+# forecast_trait <- plot(fc_trait, series = 4, 
+#      main = "Trait model")
+# forecast_trait <- plot(fc_trait, series = 5, 
+#      main = "Trait model")
+# forecast_trait <- plot(fc_trait, series = 6, 
+#      main = "Trait model")
 
 
 
