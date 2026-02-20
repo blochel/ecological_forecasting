@@ -334,10 +334,10 @@ plot_predictions(mod1,
                  newdata = count_env_data_all,
                  by = c('time', 'series', 'series'),
                  points = 0.5) +
-  geom_vline(xintercept = max(data_train_all$time),
+  geom_vline(xintercept = max(data_train$time),
              linetype = 'dashed') +
   geom_point(aes(x = time, y = count), 
-             data = data_test_all)
+             data = data_test)
 
 plot(mod1, type = "forecast", series = 1)
 plot(mod1, type = "forecast", series = 2)
@@ -357,15 +357,9 @@ plot(mod1, type = "trend", series = 6)
 
 # Dynamic trend extrapolations
 fc <- forecast(
-  mod1,
-  type = 'trend') #“link”, “response”, “trend”, “expected”, “detection”, “latent_N”
+  mod1) #“link”, “response”, “trend”, “expected”, “detection”, “latent_N”
 
-# ) +
-#   ggplot2::geom_point(data = 
-#                        data.frame(time = 1:32, 
-#                                   y = true_signal), 
-#                      mapping = ggplot2::aes(x = time, 
-#                                             y = y))
+                                          
 plot(fc, series = 1)
 plot(fc, series = 2)
 plot(fc, series = 3)
@@ -373,17 +367,36 @@ plot(fc, series = 4)
 plot(fc, series = 5)
 plot(fc, series = 6)
 
+trait_score <- score(fc, score = 'crps')
 
 
-augment(mod1, robust = TRUE, probs = c(0.25, 0.75))
-
-# CRPS 
-# LOG SCORE 
-
-# SKILL SCORES 
-
-#baseline model (mvgam longterm for each species) PORTAL 
+#augment(mod1, robust = TRUE, probs = c(0.25, 0.75))
 
 
-#kiona ogel lags 
-#nik clark lags - distributed lags section - https://ecogambler.netlify.app/blog/distributed-lags-mgcv/
+
+
+
+null_mvgam <- mvgam(count ~
+        1, 
+      trend_model = AR(),
+      data = data_train,
+      newdata = data_test
+)
+
+plot(fc_null, series = 1)
+plot(fc_null, series = 2)
+plot(fc_null, series = 3)
+plot(fc_null, series = 4)
+plot(fc_null, series = 5)
+plot(fc_null, series = 6)
+
+fc_null <- forecast(null_mvgam, 
+                    score = 'crps')
+
+null_score <- score(fc_null, score = 'crps')
+
+trait_score$all_series
+null_score$all_series
+
+
+
