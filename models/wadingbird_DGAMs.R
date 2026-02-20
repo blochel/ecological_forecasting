@@ -281,6 +281,6 @@ scores_fig <- model_scores |>
   ggplot(aes(x = eval_horizon, y = score, fill= model)) +
   geom_bar(stat="identity", position="dodge")
 
-scores_fig
+# scores_fig
 
 ggsave('results/scores/scores_fig.png', scores_fig, width = 12, height = 6, dpi = 300)
