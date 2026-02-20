@@ -263,14 +263,31 @@ null_score <- score(fc_null,
                     score = 'crps')
 null_score <- mapply(cbind, null_score, "model"= 'null', SIMPLIFY=F)
 
+
+
+
 fc_trait <- forecast(trait_mvgam, 
                     score = 'crps')
 trait_score <- score(fc_trait, 
                     score = 'crps')
-
 trait_score <- mapply(cbind, trait_score, "model"= 'trait', SIMPLIFY=F)
 
-rbind(
-trait_score$all_series,
-null_score$all_series) |> 
-  arrange(eval_horizon, score)
+
+
+
+
+model_scores <- rbind(
+  trait_score$all_series,
+  null_score$all_series) |> 
+  arrange(eval_horizon, score) |> 
+  mutate(model = factor(model))
+
+
+
+scores_fig <- model_scores |> 
+  ggplot(aes(x = eval_horizon, y = score, fill= model)) +
+  geom_bar(stat="identity", position="dodge")
+
+
+
+ggsave('results/scores/scores_fig.png', scores_fig, width = 12, height = 6, dpi = 300)
