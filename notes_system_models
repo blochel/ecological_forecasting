@@ -1,0 +1,58 @@
+# need to add priors, tell model what the system is doing. 
+# water draw down does things with the available prey concentrations
+# birds need x amount of food to start nesting, laying
+# there is a mosaic of water bodies that dry up at different rates
+# largest scale is cardinal directions, smallest is GIS locations 
+
+#water levels affect prey fish and bird populations differently 
+#in different time periods. 
+
+# fish(t-5) water is HIGH,  
+#     large fish effect prey 
+# fish(t-4) water HIGH-MEDIUM generating topographic hiding locations in landscape
+#     effect of large fish goes down, more prey fish 
+#fish(t-3) water MEDIUM, more hiding paces for prey. 
+#     small effect from large fish, highest amount of pry fish
+#fish(t-2) water LOW-MEDIUM 
+#     prey start becoming available for birds, predator switch on prey fish 
+#fish(t-1) water LOW, prey becomes constantly available for bird predation   
+#     high effect from birds on prey fish 
+#fish(t-0) water LOW-LOW, water mass can't contain fish, less fish for birds
+#     negative effects on bird population 
+
+#birds(t-5) water is HIGH, 
+#     to high water levels for most species to forage, available around shore
+#birds(t-4) water HIGH-MEDIUM
+#     more areas become available, bathymetry can allow for spots
+#birds(t-3) water MEDIUM
+#     more areas become available, bathymetry can allow for spots
+#birds(t-2) water LOW-MEDIUM 
+#     high availability in the landscape for prey availability 
+#birds(t-1) water LOW
+#     highest availability in the landscape for prey availability, high pressure on prey 
+#birds(t-0) water LOW-LOW
+#     not enough water to sustain prey population, high negative effect on birds 
+
+
+
+=============================================================================
+# subgr	
+# A subgrouping factor variable specifying which element 
+# in data represents the different time series. Defaults 
+# to series, but note that models that use the hierarchical 
+# correlations, where the subgr time series are measured in 
+# each level of gr, should not include a series element in 
+# data. Rather, this element will be created internally 
+# based on the supplied variables for gr and subgr.
+# 
+# For example, if you are modelling temporal counts for a 
+# group of species (labelled as species in data) across 
+# three different geographical regions (labelled as region), 
+# and you would like the residuals to be correlated within 
+# regions, then you should specify gr = region and 
+# subgr = species. Internally, mvgam() will create the 
+# series element for the data using:
+#   series = interaction(group, subgroup, drop = TRUE)
+
+=============================================================================
+#zero inflated NB - needed? - probably if we look at the regions 

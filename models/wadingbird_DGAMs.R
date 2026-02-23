@@ -25,6 +25,26 @@ everglades_counts_all <- everglades_counts_all |>
 
 
 
+# setup plots  ------------------------------------------------------------
+#can edit this later, but like how they look 
+
+
+theme_set(theme_classic(base_size = 12, base_family = 'serif') +
+            theme(axis.line.x.bottom = element_line(colour = "black",
+                                                    size = 1),
+                  axis.line.y.left = element_line(colour = "black",
+                                                  size = 1)))
+
+
+options(ggplot2.discrete.colour = c("#A25050",
+                                    "#8F2727",
+                                    'darkred',
+                                    "#630000"),
+        ggplot2.discrete.fill = c("#A25050",
+                                  "#8F2727",
+                                  'darkred',
+                                  "#630000"))
+
 
 # add water data ----------------------------------------------------------
 
