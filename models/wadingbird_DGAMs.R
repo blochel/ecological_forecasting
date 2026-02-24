@@ -1,17 +1,17 @@
 
 # DGAM models - Everglades Wading Birds -----------------------------------
 
-
-
-library(mvgam)          
-library(tidyverse)      
-library(ggplot2)         
+         
+library(ggplot2)        
+library(gratia) 
 library(marginaleffects) 
-library(gratia)         
+library(mvgam) 
 library(parallel)
+library(RColorBrewer)
 library(stringr)
 library(tibble)
 library(tidyr)
+library(tidyverse)    
 library(wader)
 
 
@@ -35,15 +35,12 @@ theme_set(theme_classic(base_size = 12, base_family = 'serif') +
                   axis.line.y.left = element_line(colour = "black",
                                                   size = 1)))
 
+#display.brewer.all() 
+#add different colors
 
-options(ggplot2.discrete.colour = c("#A25050",
-                                    "#8F2727",
-                                    'darkred',
-                                    "#630000"),
-        ggplot2.discrete.fill = c("#A25050",
-                                  "#8F2727",
-                                  'darkred',
-                                  "#630000"))
+
+options(ggplot2.discrete.colour = 'black',
+        ggplot2.discrete.fill = brewer.pal(9, name = 'Spectral'))
 
 
 # add water data ----------------------------------------------------------
@@ -73,8 +70,8 @@ get_mvgam_priors(count ~ 1,
 # split data into training and testing sets -------------------------------
 
 
-data_train <- filter(count_env_data_all, year < 2022 )
-data_test <- filter(count_env_data_all, year >= 2022 )
+data_train <- filter(count_env_data_all, year < 2023 )
+data_test <- filter(count_env_data_all, year >= 2023 )
 
 
 # priors ------------------------------------------------------------------
@@ -115,12 +112,21 @@ gam_var_priors <- c(sigma_prior, ar_sp_intercept_prior, intercept_prior)
 
 # Models ------------------------------------------------------------------
 
-#Null 
-null_mvgam <- mvgam(count ~
-                      1, 
-                    trend_model = AR(),
+#Null - mean
+null_mean_mvgam <- mvgam( formula = count ~ series, 
                     data = data_train,
                     newdata = data_test
+)
+
+null_AR_mvgam <- mvgam( formula = count ~ 1, 
+                        treand_model = AR(), 
+                          data = data_train,
+                          newdata = data_test
+)
+null_VAR_mvgam <- mvgam( formula = count ~ 1, 
+                         trend_model = VAR(), 
+                          data = data_train,
+                          newdata = data_test
 )
 
 
@@ -160,13 +166,13 @@ trait_mvgam <- mvgam(
     
     # Shared smooth of x for all series
     s(recession, 
-      bs = 'cr') #+
+      bs = 'cr') +
   
   # # Deviation smooths for each series
-  # s(recession,                                       #removing this makes R_hat larger
-  #   trend,
-  #   bs = 'sz',
-  #   xt = list(bs = 'cr'))
+  s(recession,                                       #removing this makes R_hat larger
+    trend,
+    bs = 'sz',
+    xt = list(bs = 'cr'))
   ,
   
   trend_model = VAR(), 
@@ -175,7 +181,7 @@ trait_mvgam <- mvgam(
     # trend_map forces species to track same /different latent signals
     data.frame(
       series = unique(data_train$series),
-      trend = c(1, 1, 2, 1, 3, 4)
+      trend = c(1, 1, 2, 1, 3, 2)
     ),
   
   
@@ -248,21 +254,27 @@ ar_mvgam <- mvgam(
 #for later
 
 #Null
-fc_null <- forecast(
-  null_mvgam)
+fc_mean_null <- forecast(
+  null_mean_mvgam)
 
-# forecast_null <- plot(fc_null, series = 1, 
-#                       main = "Null model")
-# forecast_null <- plot(fc_null, series = 2, 
-#                       main = "Null model")
-# forecast_null <- plot(fc_null, series = 3, 
-#                       main = "Null model")
-# forecast_null <- plot(fc_null, series = 4, 
-#                       main = "Null model")
-# forecast_null <- plot(fc_null, series = 5, 
-#                       main = "Null model")
-# forecast_null <- plot(fc_null, series = 6, 
-#                       main = "Null model")
+fc_AR_null <- forecast(
+  null_AR_mvgam)
+
+fc_VAR_null <- forecast(
+  null_VAR_mvgam)
+
+forecast_null1 <- plot(fc_mean_null, series = 1,
+                       main = "Null model")
+ forecast_null2 <- plot(fc_mean_null, series = 2,
+                       main = "Null model")
+ forecast_null3 <- plot(fc_mean_null, series = 3,
+                       main = "Null model")
+ forecast_null4 <- plot(fc_mean_null, series = 4,
+                       main = "Null model")
+ forecast_null5 <- plot(fc_mean_null, series = 5,
+                       main = "Null model")
+ forecast_null6 <- plot(fc_mean_null, series = 6,
+                       main = "Null model")
 
 
 
@@ -297,11 +309,25 @@ fc_trait <- forecast(
 # scores ------------------------------------------------------------------
 
 
-fc_null <- forecast(null_mvgam, 
+fc_mean_null <- forecast(null_mean_mvgam, 
                     score = 'crps')
-null_score <- score(fc_null, 
+null_mean_score <- score(fc_mean_null, 
                     score = 'crps')
-null_score <- mapply(cbind, null_score, "model"= 'null', SIMPLIFY=F)
+null_mean_score <- mapply(cbind, null_mean_score, "model"= 'null_mean', SIMPLIFY=F)
+
+
+fc_AR_null <- forecast(null_AR_mvgam, 
+                    score = 'crps')
+null_AR_score <- score(fc_AR_null, 
+                    score = 'crps')
+null_AR_score <- mapply(cbind, null_AR_score, "model"= 'null_ar', SIMPLIFY=F)
+
+
+fc_VAR_null <- forecast(null_VAR_mvgam, 
+                    score = 'crps')
+null_VAR_score <- score(fc_VAR_null, 
+                    score = 'crps')
+null_VAR_score <- mapply(cbind, null_VAR_score, "model"= 'null_var', SIMPLIFY=F)
 
 
 
@@ -331,32 +357,43 @@ ar_score <- mapply(cbind, ar_score, "model"= 'ar', SIMPLIFY=F)
 
 
 scores_species_fig <- rbind(
-  within(Map(cbind, null_score, group = names(null_score)), 
+  within(Map(cbind, null_mean_score, group = names(null_mean_score)), 
          rm(all_series)) |> 
     bind_rows(), 
   
-  within(Map(cbind, trait_score, group = names(null_score)), 
+  # within(Map(cbind, null_AR_score, group = names(null_AR_score)), 
+  #        rm(all_series)) |> 
+  #   bind_rows(), 
+  
+  # within(Map(cbind, null_VAR_score, group = names(null_VAR_score)), 
+  #        rm(all_series)) |> 
+  #   bind_rows(), 
+  
+  within(Map(cbind, trait_score, group = names(trait_score)), 
          rm(all_series)) |> 
     bind_rows(),
   
-  within(Map(cbind, var_score, group = names(null_score)), 
+  within(Map(cbind, var_score, group = names(var_score)), 
          rm(all_series)) |> 
-    bind_rows(),
+    bind_rows()
   
-  within(Map(cbind, ar_score, group = names(null_score)), 
-         rm(all_series)) |> 
-    bind_rows() 
+  # within(Map(cbind, ar_score, group = names(ar_score)), 
+  #        rm(all_series))
+  # |> 
+  #   bind_rows() 
 )|> 
   arrange(group, eval_horizon, score) |> 
   ggplot(aes(x = eval_horizon, y = score, fill= model)) +
   geom_bar(stat="identity", position="dodge") +
-  facet_grid(~group)
+  facet_wrap(~group, scales = "free")
 
 
 
 model_all_scores <- rbind(
   trait_score$all_series,
-  null_score$all_series,
+  null_mean_score$all_series,
+  null_AR_score$all_series,
+  null_VAR_score$all_series,
   var_score$all_series, 
   ar_score$all_series) |> 
   arrange(eval_horizon, score) |> 
@@ -368,7 +405,8 @@ scores_all_fig <- model_all_scores |>
   ggplot(aes(x = eval_horizon, y = score, fill= model)) +
   geom_bar(stat="identity", position="dodge")
 
-
+scores_species_fig
+scores_all_fig
 
 # scores_fig
 
@@ -378,3 +416,44 @@ ggsave('results/scores/scores_all_fig.png', scores_all_fig,
 
 ggsave('results/scores/scores_species_fig.png', scores_species_fig, 
        width = 12, height = 6, dpi = 300)
+
+
+
+
+
+
+
+
+
+
+
+
+
+# option to display scores ------------------------------------------------
+
+# crps_mod1 <- score(fc_mod1, score = "crps")
+# crps_mod2 <- score(fc_mod2, score = "crps")
+# 
+# diff_scores <- crps_mod2$series_1$score -
+#   crps_mod1$series_1$score
+# plot(diff_scores,
+#      pch = 16, cex = 1.25, col = "darkred",
+#      ylim = c(
+#        -1 * max(abs(diff_scores), na.rm = TRUE),
+#        max(abs(diff_scores), na.rm = TRUE)
+#      ),
+#      bty = "l",
+#      xlab = "Forecast horizon",
+#      ylab = expression(CRPS[AR1] ~ -~ CRPS[spline])
+# )
+# abline(h = 0, lty = "dashed", lwd = 2)
+# ar1_better <- length(which(diff_scores < 0))
+# title(main = paste0(
+#   "AR(1) better in ",
+#   ar1_better,
+#   " of ",
+#   length(diff_scores),
+#   " evaluations",
+#   "\nMean difference = ",
+#   round(mean(diff_scores, na.rm = TRUE), 2)
+# ))
