@@ -467,7 +467,7 @@ fc_tv <-forecast(
 
 
 fc_mean_null <- forecast(baseline_model_mean, 
-                    score = 'crps')
+                         score = 'crps')
 null_mean_score <- score(fc_mean_null, 
                     score = 'crps')
 null_mean_score <- mapply(cbind, null_mean_score, "model"= 'null_mean', SIMPLIFY=F)
@@ -529,10 +529,6 @@ ar_score <- mapply(cbind, ar_score, "model"= 'ar', SIMPLIFY=F)
 
 
 scores_species_fig <- rbind(
-  within(Map(cbind, null_mean_score, group = names(null_mean_score)), 
-         rm(all_series)) |> 
-    bind_rows(), 
-  
   # within(Map(cbind, null_AR_score, group = names(null_AR_score)), 
   #        rm(all_series)) |> 
   #   bind_rows(), 
@@ -563,29 +559,40 @@ scores_species_fig <- rbind(
   # |> 
   #   bind_rows() 
 )|> 
-  arrange(group, eval_horizon, score) |> 
-  ggplot(aes(x = eval_horizon, y = score, fill= model)) +
+  left_join(within(Map(cbind, null_mean_score, group = names(null_mean_score)), 
+         rm(all_series)) |> 
+           bind_rows()  |> 
+           mutate(null_score = score) |> 
+           select(-c(score_type, score, model, interval_width, in_interval)),
+         by = join_by(eval_horizon, group) )|> 
+  mutate(skill = 1 - score / null_score) |> 
+  arrange(group, eval_horizon, skill) |> 
+  ggplot(aes(x = eval_horizon, y = skill, fill= model)) +
   geom_bar(stat="identity", position="dodge") +
   facet_wrap(~group, scales = "free")
 
 
 
 model_all_scores <- rbind(
-  null_mean_score$all_series,
- trait_score$all_series,
+  trait_score$all_series,
  # null_AR_score$all_series,
  # null_VAR_score$all_series,
  # var_score$all_series, 
  tv_score$all_series,
  tv2_score$all_series
  ) |> 
+  left_join(null_mean_score$all_series |> 
+              mutate(null_score = score) |> 
+              select(-c(score_type, score, model)), 
+            by = join_by(eval_horizon)) |> 
+  mutate(skill = 1 - score / null_score) |> 
   arrange(eval_horizon, score) |> 
   mutate(model = factor(model))
 
 
 
 scores_all_fig <- model_all_scores |> 
-  ggplot(aes(x = eval_horizon, y = score, fill= model)) +
+  ggplot(aes(x = eval_horizon, y = skill, fill= model)) +
   geom_bar(stat="identity", position="dodge")
 
 scores_species_fig
