@@ -40,7 +40,7 @@ theme_set(theme_classic(base_size = 12, base_family = 'serif') +
 
 
 options(ggplot2.discrete.colour = 'black',
-        ggplot2.discrete.fill = brewer.pal(9, name = 'Spectral'))
+        ggplot2.discrete.fill = brewer.pal(9, name = 'Paired'))
 
 
 # add water data ----------------------------------------------------------
@@ -70,8 +70,8 @@ get_mvgam_priors(count ~ 1,
 # split data into training and testing sets -------------------------------
 
 
-data_train <- filter(count_env_data_all, year < 2023 )
-data_test <- filter(count_env_data_all, year >= 2023 )
+data_train <- filter(count_env_data_all, year < 2022 )
+data_test <- filter(count_env_data_all, year >= 2022 )
 
 
 # priors ------------------------------------------------------------------
@@ -113,7 +113,7 @@ gam_var_priors <- c(sigma_prior, ar_sp_intercept_prior, intercept_prior)
 # Models ------------------------------------------------------------------
 
 #Null - mean
-null_mean_mvgam <- mvgam( formula = count ~ series, 
+baseline_model_mean <- mvgam( formula = count ~ series, 
                     data = data_train,
                     newdata = data_test
 )
@@ -143,15 +143,17 @@ trait_mvgam <- mvgam(
     s(init_depth, 
       bs = 'cr') +
     
+    # Deviation smooths for each series
+    s(init_depth,
+      trend,
+      bs = 'sz',
+      xt = list(bs = 'cr'))+
+    
     # Shared smooth of x for all series
     s(dry_days, 
       bs = 'cr') +
     
-    # Deviation smooths for each series
-    s(dry_days,
-      trend,
-      bs = 'sz',
-      xt = list(bs = 'cr'))+
+
     
     # Shared smooth of x for all series
     s(breed_season_depth, 
@@ -166,13 +168,13 @@ trait_mvgam <- mvgam(
     
     # Shared smooth of x for all series
     s(recession, 
-      bs = 'cr') +
+      bs = 'cr') #+
   
   # # Deviation smooths for each series
-  s(recession,                                       #removing this makes R_hat larger
-    trend,
-    bs = 'sz',
-    xt = list(bs = 'cr'))
+  # s(recession,                                       #removing this makes R_hat larger
+  #   trend,
+  #   bs = 'sz',
+  #   xt = list(bs = 'cr'))
   ,
   
   trend_model = VAR(), 
@@ -181,9 +183,9 @@ trait_mvgam <- mvgam(
     # trend_map forces species to track same /different latent signals
     data.frame(
       series = unique(data_train$series),
-      trend = c(1, 1, 2, 1, 3, 2)
+      trend = c(1, 1, 2, 1, 3, 4)
     ),
-  
+
   
   # Updated prior distributions for the series-level 
   # intercepts using brms::prior()
@@ -220,6 +222,70 @@ trait_mvgam <- mvgam(
 
 
 
+trait_mvgam_variables <- mvgam(
+  # Observation formula containing species-level intercepts
+  formula = count ~ series,
+  
+  # Process model that contains the hierarchical temporal smooths
+  trend_formula = ~
+    0 + 
+    s(init_depth,
+      trend,
+      bs = 'sz',
+      xt = list(bs = 'cr'))+
+    s(dry_days, 
+      bs = 'cr') +
+    s(breed_season_depth,
+      trend,
+      bs = 'sz',
+      xt = list(bs = 'cr'))+
+    dry_days 
+  ,
+  
+  trend_model = VAR(), 
+  
+  trend_map =
+    # trend_map forces species to track same /different latent signals
+    data.frame(
+      series = unique(data_train$series),
+      trend = c(1, 1, 2, 1, 3, 2)
+    ),
+
+  
+  
+  # Updated prior distributions for the series-level 
+  # intercepts using brms::prior()
+  priors = ar_sp_intercept_prior,
+  
+  # Training and testing data in mvgam's long format
+  data = data_train,
+  newdata = data_test,
+  
+  # nb observation model
+  family = nb(),
+  
+  
+  control = list(max_treedepth = 10,   #10 
+                 adapt_delta = 0.9),   #0.8
+  
+  # Each series shares the same nb shape parameter
+  # If TRUE and the family has additional 
+  # family-specific observation parameters (e.g., 
+  # variance components, dispersion parameters), 
+  # these will be shared across all outcome variables. 
+  # Useful when multiple outcomes share properties. 
+  share_obs_params = TRUE,
+  
+  # Non-centring the latent states tends to improve
+  # performance in State Space models
+  noncentred = TRUE,
+  backend = 'cmdstanr',
+  
+  
+  
+  samples = 1500
+)
+
 
 var_mvgam <- mvgam(
   formula = count ~ 1,
@@ -248,6 +314,98 @@ ar_mvgam <- mvgam(
 
 
 
+
+
+trait_mvgam_variables2 <- mvgam(
+  # Observation formula containing species-level intercepts
+  formula = count ~ series,
+  
+  # Process model that contains the hierarchical temporal smooths
+  trend_formula = ~
+    0 + 
+    s(init_depth,
+      trend,
+      bs = 'sz',
+      xt = list(bs = 'cr'))+
+    s(dry_days, 
+      bs = 'cr') +
+    s(breed_season_depth,
+      trend,
+      bs = 'sz',
+      xt = list(bs = 'cr'))+
+    dry_days 
+  ,
+  
+  trend_model = AR(), 
+  
+  trend_map =
+    # trend_map forces species to track same /different latent signals
+    data.frame(
+      series = unique(data_train$series),
+      trend = c(1, 1, 2, 1, 2, 2)
+    ),
+  
+
+  
+  # Updated prior distributions for the series-level 
+  # intercepts using brms::prior()
+  priors = ar_sp_intercept_prior,
+  
+  # Training and testing data in mvgam's long format
+  data = data_train,
+  newdata = data_test,
+  
+  # nb observation model
+  family = nb(),
+  
+  
+  control = list(max_treedepth = 10,   #10 
+                 adapt_delta = 0.9),   #0.8
+  
+  # Each series shares the same nb shape parameter
+  # If TRUE and the family has additional 
+  # family-specific observation parameters (e.g., 
+  # variance components, dispersion parameters), 
+  # these will be shared across all outcome variables. 
+  # Useful when multiple outcomes share properties. 
+  share_obs_params = TRUE,
+  
+  # Non-centring the latent states tends to improve
+  # performance in State Space models
+  noncentred = TRUE,
+  backend = 'cmdstanr',
+  
+  
+  
+  samples = 1500
+)
+
+
+var_mvgam <- mvgam(
+  formula = count ~ 1,
+  trend_formula = ~ s(breed_season_depth, trend, bs = "re") +
+    s(dry_days, trend, bs = "re") +
+    s(recession, trend, bs = "re"),
+  trend_model = VAR(),
+  family = nb(),
+  data = data_train,
+  newdata = data_test,
+  chains = 4
+)
+
+ar_mvgam <- mvgam(
+  formula = count ~ 1,
+  trend_formula = ~ s(breed_season_depth, trend, bs = "re") +
+    s(dry_days, trend, bs = "re") +
+    s(recession, trend, bs = "re"),
+  trend_model = AR(),
+  family = nb(),
+  data = data_train,
+  newdata = data_test,
+  chains = 4
+)
+
+
 # Forecasting - plotting --------------------------------------------------
 
 
@@ -255,7 +413,7 @@ ar_mvgam <- mvgam(
 
 #Null
 fc_mean_null <- forecast(
-  null_mean_mvgam)
+  baseline_model_mean)
 
 fc_AR_null <- forecast(
   null_AR_mvgam)
@@ -263,18 +421,18 @@ fc_AR_null <- forecast(
 fc_VAR_null <- forecast(
   null_VAR_mvgam)
 
-forecast_null1 <- plot(fc_mean_null, series = 1,
-                       main = "Null model")
- forecast_null2 <- plot(fc_mean_null, series = 2,
-                       main = "Null model")
- forecast_null3 <- plot(fc_mean_null, series = 3,
-                       main = "Null model")
- forecast_null4 <- plot(fc_mean_null, series = 4,
-                       main = "Null model")
- forecast_null5 <- plot(fc_mean_null, series = 5,
-                       main = "Null model")
- forecast_null6 <- plot(fc_mean_null, series = 6,
-                       main = "Null model")
+# forecast_null1 <- plot(fc_mean_null, series = 1,
+#                        main = "Null model")
+#  forecast_null2 <- plot(fc_mean_null, series = 2,
+#                        main = "Null model")
+#  forecast_null3 <- plot(fc_mean_null, series = 3,
+#                        main = "Null model")
+#  forecast_null4 <- plot(fc_mean_null, series = 4,
+#                        main = "Null model")
+#  forecast_null5 <- plot(fc_mean_null, series = 5,
+#                        main = "Null model")
+#  forecast_null6 <- plot(fc_mean_null, series = 6,
+#                        main = "Null model")
 
 
 
@@ -295,9 +453,8 @@ fc_trait <- forecast(
 # forecast_trait <- plot(fc_trait, series = 6, 
 #      main = "Trait model")
 
-
-
-
+fc_tv <-forecast(
+  trait_mvgam_variables)
 
 
 
@@ -309,7 +466,7 @@ fc_trait <- forecast(
 # scores ------------------------------------------------------------------
 
 
-fc_mean_null <- forecast(null_mean_mvgam, 
+fc_mean_null <- forecast(baseline_model_mean, 
                     score = 'crps')
 null_mean_score <- score(fc_mean_null, 
                     score = 'crps')
@@ -337,6 +494,21 @@ trait_score <- score(fc_trait,
                     score = 'crps')
 trait_score <- mapply(cbind, trait_score, "model"= 'trait', SIMPLIFY=F)
 
+
+
+fc_tv <- forecast(trait_mvgam_variables, 
+                     score = 'crps')
+tv_score <- score(fc_tv, 
+                     score = 'crps')
+tv_score <- mapply(cbind, tv_score, "model"= 'tv', SIMPLIFY=F)
+
+
+
+fc_tv2 <- forecast(trait_mvgam_variables2, 
+                  score = 'crps')
+tv2_score <- score(fc_tv2, 
+                  score = 'crps')
+tv2_score <- mapply(cbind, tv2_score, "model"= 'tv2', SIMPLIFY=F)
 
 
 fc_var <- forecast(var_mvgam, 
@@ -369,11 +541,20 @@ scores_species_fig <- rbind(
   #        rm(all_series)) |> 
   #   bind_rows(), 
   
-  within(Map(cbind, trait_score, group = names(trait_score)), 
+  within(Map(cbind, trait_score, group = names(trait_score)),
+         rm(all_series)) |>
+    bind_rows(),
+   
+  # within(Map(cbind, var_score, group = names(var_score)), 
+  #        rm(all_series)) |> 
+  #   bind_rows(),
+  
+  within(Map(cbind, tv_score, group = names(tv_score)), 
          rm(all_series)) |> 
     bind_rows(),
   
-  within(Map(cbind, var_score, group = names(var_score)), 
+  
+  within(Map(cbind, tv2_score, group = names(tv2_score)), 
          rm(all_series)) |> 
     bind_rows()
   
@@ -390,12 +571,14 @@ scores_species_fig <- rbind(
 
 
 model_all_scores <- rbind(
-  trait_score$all_series,
   null_mean_score$all_series,
-  null_AR_score$all_series,
-  null_VAR_score$all_series,
-  var_score$all_series, 
-  ar_score$all_series) |> 
+ trait_score$all_series,
+ # null_AR_score$all_series,
+ # null_VAR_score$all_series,
+ # var_score$all_series, 
+ tv_score$all_series,
+ tv2_score$all_series
+ ) |> 
   arrange(eval_horizon, score) |> 
   mutate(model = factor(model))
 
@@ -407,6 +590,27 @@ scores_all_fig <- model_all_scores |>
 
 scores_species_fig
 scores_all_fig
+
+#trait: VAR
+# gbhe=greg=sneg
+# rosp  
+# whib 
+# wost
+
+#tv: VAR
+# gbhe=greg=sneg 
+# rosp=wost
+# whib
+
+#tv2:AR
+# gbhe=greg=sneg 
+# rosp=whib=wost
+
+
+ fc_mean_null |> plot()
+ fc_tv |> plot()
+ fc_tv2 |> plot()
+ fc_trait |> plot()
 
 # scores_fig
 
@@ -420,9 +624,7 @@ ggsave('results/scores/scores_species_fig.png', scores_species_fig,
 
 
 
-
-
-
+#need trend model in my mvgams - for rolling forecast... 
 
 
 
