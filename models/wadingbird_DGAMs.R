@@ -409,6 +409,16 @@ ar_mvgam <- mvgam(
 # Forecasting - plotting --------------------------------------------------
 
 
+
+# 
+# within(Map(rbind, fc_mean_null$forecasts, 
+#            species = names(fc_mean_null$forecasts), 
+#            model = 'baseline')) |>
+#   bind_rows()
+# 
+# 
+
+
 #for later
 
 #Null
@@ -421,18 +431,18 @@ fc_AR_null <- forecast(
 fc_VAR_null <- forecast(
   null_VAR_mvgam)
 
-# forecast_null1 <- plot(fc_mean_null, series = 1,
-#                        main = "Null model")
-#  forecast_null2 <- plot(fc_mean_null, series = 2,
-#                        main = "Null model")
-#  forecast_null3 <- plot(fc_mean_null, series = 3,
-#                        main = "Null model")
-#  forecast_null4 <- plot(fc_mean_null, series = 4,
-#                        main = "Null model")
-#  forecast_null5 <- plot(fc_mean_null, series = 5,
-#                        main = "Null model")
-#  forecast_null6 <- plot(fc_mean_null, series = 6,
-#                        main = "Null model")
+forecast_null1 <- plot(fc_mean_null, series = 1,
+                       main = "Null model")
+ forecast_null2 <- plot(fc_mean_null, series = 2,
+                       main = "Null model")
+ forecast_null3 <- plot(fc_mean_null, series = 3,
+                       main = "Null model")
+ forecast_null4 <- plot(fc_mean_null, series = 4,
+                       main = "Null model")
+ forecast_null5 <- plot(fc_mean_null, series = 5,
+                       main = "Null model")
+ forecast_null6 <- plot(fc_mean_null, series = 6,
+                       main = "Null model")
 
 
 
@@ -473,6 +483,9 @@ null_mean_score <- score(fc_mean_null,
 null_mean_score <- mapply(cbind, null_mean_score, "model"= 'null_mean', SIMPLIFY=F)
 
 
+
+
+
 fc_AR_null <- forecast(null_AR_mvgam, 
                     score = 'crps')
 null_AR_score <- score(fc_AR_null, 
@@ -492,6 +505,10 @@ fc_trait <- forecast(trait_mvgam,
                     score = 'crps')
 trait_score <- score(fc_trait, 
                     score = 'crps')
+
+# trait_score |> 
+mapply(cbind, trait_score, "model"= 'null', SIMPLIFY=F)
+
 trait_score <- mapply(cbind, trait_score, "model"= 'trait', SIMPLIFY=F)
 
 
@@ -524,6 +541,8 @@ fc_ar <- forecast(ar_mvgam,
 ar_score <- score(fc_ar, 
                      score = 'crps')
 ar_score <- mapply(cbind, ar_score, "model"= 'ar', SIMPLIFY=F)
+
+
 
 
 
@@ -573,22 +592,51 @@ scores_species_fig <- rbind(
 
 
 
-model_all_scores <- rbind(
-  trait_score$all_series,
- # null_AR_score$all_series,
- # null_VAR_score$all_series,
- # var_score$all_series, 
- tv_score$all_series,
- tv2_score$all_series
- ) |> 
-  left_join(null_mean_score$all_series |> 
-              mutate(null_score = score) |> 
-              select(-c(score_type, score, model)), 
-            by = join_by(eval_horizon)) |> 
-  mutate(skill = 1 - score / null_score) |> 
-  arrange(eval_horizon, score) |> 
-  mutate(model = factor(model))
 
+
+# test for sliding window -------------------------------------------------
+
+
+train_data <- data_train
+test_data <- data_test
+baseline_model <- mvgam( formula = count ~ series, 
+                         data = train_data,
+                         newdata = test_data)
+
+
+ar_model1 <- mvgam(
+  formula = count ~ 1,
+  trend_formula = ~ s(breed_season_depth, trend, bs = "re") +
+    s(dry_days, trend, bs = "re") +
+    s(recession, trend, bs = "re"),
+  trend_model = AR(),
+  family = nb(),
+  data = data_train,
+  newdata = data_test,
+  chains = 4)
+
+
+
+baseline_score <- forecast(baseline_model, 
+                           score = 'crps') |> 
+  score(score = 'crps') 
+
+
+AR_score <- forecast(ar_model1, 
+                     score = 'crps') |> 
+  score(score = 'crps') 
+
+
+
+
+c(key_vars(test_data), ".type")
+
+
+
+
+
+
+# plot figures ------------------------------------------------------------
 
 
 scores_all_fig <- model_all_scores |> 

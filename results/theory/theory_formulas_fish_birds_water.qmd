@@ -1,0 +1,101 @@
+---
+title: "Fish-Bird Predation Model Everglades"
+subtitle: "Weecology - University of Florida"
+author: "A. Blochel"
+format: pdf
+---
+
+# Model Equations
+
+## Small Fish Dynamics
+
+$$
+\frac{dS}{dt} = r_s S \left(1 - \frac{S}{K_s}\right) - b \cdot \frac{50}{W} \cdot B(t,S) \cdot S - a S L
+$$
+
+Where:
+
+- $S$ = small fish density
+- $r_s$ = intrinsic growth rate of small fish
+- $K_s$ = carrying capacity for small fish
+- $b$ = bird predation base rate
+- $W$ = water depth (cm)
+- $B(t,S)$ = bird abundance (function of time and small fish density)
+- $a$ = large fish predation rate on small fish
+- $L$ = large fish density
+
+**Terms:**
+
+- First term: logistic growth of small fish
+- Second term: bird predation (increases with concentration $50/W$ and bird abundance)
+- Third term: large fish predation 
+
+## Large Fish Dynamics
+
+$$
+\frac{dL}{dt} = \begin{cases} 
+c a S L - d L - e_{max} e^{-e_{shape}(W-10)} L & \text{if } W \geq 10 \\
+-L & \text{if } W < 10
+\end{cases}
+$$
+
+Where:
+
+- $L$ = large fish density
+- $c$ = conversion efficiency (small fish biomass to large fish growth)
+- $a$ = predation rate of large fish on small fish
+- $S$ = small fish density
+- $d$ = natural mortality rate of large fish
+- $e_{max}$ = maximum emigration rate
+- $e_{shape}$ = shape parameter for emigration response
+- $W$ = water depth (cm)
+
+**Terms:**
+
+- First term: growth from consuming small fish
+- Second term: natural mortality
+- Third term: emigration (increases exponentially as depth approaches 10 cm threshold)
+- Complete removal when water depth falls below 10 cm
+
+## Bird Abundance
+
+$$
+B(t,S) = B_{water}(t) + \frac{b_{response} \cdot S}{h_{sat} + S}
+$$
+
+where:
+
+$$
+B_{water}(t) = \begin{cases}
+10 & \text{if } W > 40 \\
+10 + 90 \cdot \frac{40 - W}{40} & \text{if } W \leq 40
+\end{cases}
+$$
+
+Where:
+
+- $B(t,S)$ = total bird abundance (depends on water depth and small fish)
+- $B_{water}(t)$ = bird response to water depth
+- $b_{response}$ = maximum additional birds attracted by fish availability
+- $h_{sat}$ = half-saturation constant for bird numerical response to fish
+- $S$ = small fish density
+- $W$ = water depth (cm)
+
+**Mechanism:**
+
+- Birds arrive when water becomes shallow ($W \leq 40$ cm)
+- Additional birds are attracted by high small fish density (Type II functional response)
+
+## Water Depth
+
+$$
+W(t) = 30 + 25 \sin\left(\frac{2\pi t}{365}\right)
+$$
+
+Where:
+
+- $W(t)$ = water depth at time $t$ (cm)
+- $t$ = time (days)
+- Mean depth = 30 cm
+- Amplitude = 25 cm (depth ranges from 5 to 55 cm)
+- Period = 365 days (annual cycle)
